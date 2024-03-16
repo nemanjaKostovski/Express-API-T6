@@ -1,5 +1,8 @@
 export interface UserEntity {
-  id: string; // uuid
+  // email: string;
+  // password: string;
+  // role: 'admin' | 'user';
+  id: string;
 }
 
 export interface ProductEntity {
