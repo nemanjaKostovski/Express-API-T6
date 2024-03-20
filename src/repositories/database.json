@@ -1,0 +1,57 @@
+{
+  "products": [
+    {
+      "id": "51422fcd-0366-4186-ad5b-c23059b6f64f",
+      "title": "Book",
+      "description": "A very interesting book",
+      "price": 100
+    },
+    {
+      "id": "61422fcd-0366-4186-ad5b-c23059b6f64f",
+      "title": "Pen",
+      "description": "A useful pen",
+      "price": 20
+    }
+  ],
+  "users": [
+    {
+      "id": "fdbbb574-266b-4b2e-ad2d-790bcf4765c2"
+    },
+    {
+      "id": "adbbb574-266b-4b2e-bd2d-790bcf4765c2"
+    }
+  ],
+  "carts": [
+    {
+      "id": "1434fec6-cd85-420d-95c0-eee2301a971d",
+      "userId": "adbbb574-266b-4b2e-bd2d-790bcf4765c2",
+      "isDeleted": true,
+      "items": [
+        {
+          "product": {
+            "id": "51422fcd-0366-4186-ad5b-c23059b6f64f",
+            "title": "Book",
+            "description": "A very interesting book",
+            "price": 100
+          },
+          "count": 2
+        },
+        {
+          "product": {
+            "id": "61422fcd-0366-4186-ad5b-c23059b6f64f",
+            "title": "Pen",
+            "description": "A useful pen",
+            "price": 20
+          },
+          "count": 15
+        }
+      ]
+    },
+    {
+      "id": "9e9da999-98e2-4bba-870d-03369fe00379",
+      "userId": "fdbbb574-266b-4b2e-ad2d-790bcf4765c2",
+      "isDeleted": false,
+      "items": []
+    }
+  ]
+}
