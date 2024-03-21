@@ -52,6 +52,22 @@
       "userId": "fdbbb574-266b-4b2e-ad2d-790bcf4765c2",
       "isDeleted": false,
       "items": []
+    },
+    {
+      "id": "b69109ec-1cb4-40c4-93b6-1e2505411bf8",
+      "userId": "adbbb574-266b-4b2e-bd2d-790bcf4765c2",
+      "isDeleted": false,
+      "items": [
+        {
+          "product": {
+            "id": "61422fcd-0366-4186-ad5b-c23059b6f64f",
+            "title": "Pen",
+            "description": "A useful pen",
+            "price": 20
+          },
+          "count": 5
+        }
+      ]
     }
   ]
 }
