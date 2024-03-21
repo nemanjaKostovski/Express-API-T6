@@ -6,6 +6,8 @@ const app = express();
 
 const server = http.createServer(app);
 
+app.use(express.json());
+
 app.use(routes);
 
 server.listen(8000, () => {
