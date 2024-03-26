@@ -33,6 +33,9 @@ class ProductService {
             try {
                 // Call the ProductRepository to fetch product by ID
                 const product = yield product_repository_1.default.getProductById(productId);
+                if (!product) {
+                    return undefined;
+                }
                 return product;
             }
             catch (error) {

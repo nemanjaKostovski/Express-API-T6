@@ -14,10 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const cart_repository_1 = __importDefault(require("../repositories/cart.repository"));
 const product_service_1 = __importDefault(require("./product.service"));
+const order_model_1 = __importDefault(require("../models/order.model"));
 class CartService {
     static getOrCreateUserCart(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             // Check if the user already has a cart
+            console.log('CS get or create ' + userId);
             let cart = yield cart_repository_1.default.getCartByUserId(userId);
             // If the user doesn't have a cart, create a new one
             if (!cart) {
@@ -29,27 +31,27 @@ class CartService {
     static updateCart(userId, productId, count) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // Retrieve the existing cart object for the given user ID from the repository
+                console.log('CS update cart ' + userId);
                 let cart = yield cart_repository_1.default.getCartByUserId(userId);
                 if (!cart) {
                     return undefined; // Cart not found
                 }
-                // Find the product with the specified ID from the list of products
                 const product = yield product_service_1.default.getProductById(productId);
                 if (!product) {
                     throw new Error('Product not found');
                 }
-                // Find the index of the product in the cart's items array
+                // @ts-ignore
+                const itemToAdd = {
+                    product: product,
+                    count: count,
+                };
                 const index = cart.items.findIndex((item) => item.product.id === productId);
                 if (index !== -1) {
-                    // If the product already exists in the cart, update its count
                     cart.items[index].count += count;
                 }
                 else {
-                    // If the product is not already in the cart, add it to the items array
-                    cart.items.push({ product, count });
+                    cart.items.push(itemToAdd);
                 }
-                // Save the updated cart object in the repository
                 const updatedCart = yield cart_repository_1.default.updateCart(cart);
                 return updatedCart;
             }
@@ -63,6 +65,7 @@ class CartService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // Check if the user has a cart
+                console.log('CS empty cart ' + userId);
                 const cart = yield cart_repository_1.default.getCartByUserId(userId);
                 if (!cart) {
                     return false; // Cart not found
@@ -83,18 +86,32 @@ class CartService {
     }
     static checkoutCart(userId, orderDetails) {
         return __awaiter(this, void 0, void 0, function* () {
-            // You can implement the logic to create an order from the cart here
-            // This could involve creating a new order entity, updating inventory, etc.
-            // For simplicity, let's just return the cart as the order for now
-            const cart = yield cart_repository_1.default.getCartByUserId(userId);
-            if (!cart || cart.items.length === 0) {
-                throw new Error('Cart is empty');
+            try {
+                // Retrieve the cart associated with the user
+                console.log('CS checkout cart ' + userId);
+                const cart = yield cart_repository_1.default.getCartByUserId(userId);
+                // Check if the cart exists and if it has items
+                if (!cart || cart.items.length === 0) {
+                    throw new Error('Cart is empty');
+                }
+                // Calculate the total based on the items in the cart
+                const total = cart.items.reduce((acc, item) => {
+                    return acc + item.product.price * item.count;
+                }, 0);
+                // Create the order object with necessary details
+                const orderData = Object.assign({ userId: userId, cartId: cart._id, items: cart.items, status: 'created', total: total }, orderDetails);
+                // Create a new Order instance
+                const order = new order_model_1.default(orderData);
+                // Save the order to the database
+                const savedOrder = yield order.save();
+                // Clear the cart after checkout
+                yield cart_repository_1.default.deleteCart(userId);
+                return savedOrder;
             }
-            // Mocking the order creation process
-            const order = Object.assign(Object.assign(Object.assign({}, cart), { status: 'created', total: 0 }), orderDetails);
-            // Clear the cart after checkout
-            yield cart_repository_1.default.deleteCart(userId);
-            return order;
+            catch (error) {
+                console.error('Error checking out user cart:', error);
+                throw new Error('Failed to checkout cart');
+            }
         });
     }
 }

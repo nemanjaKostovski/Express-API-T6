@@ -1,4 +1,4 @@
-import { UserEntity } from '../types';
+import { UserEntity } from '../models/user.model';
 import UserRepository from '../repositories/user.repository';
 
 class UserService {
@@ -6,6 +6,7 @@ class UserService {
     try {
       // Call the ProductRepository to fetch product by ID
       const user = await UserRepository.getUserById(userId);
+      console.log(user);
       return user || null;
     } catch (error) {
       // Handle errors

@@ -1,10 +1,14 @@
-import { CartEntity } from '../types';
+import { CartEntity } from '../models/cart.model';
+import { CartItemEntity } from '../models/cartItem.model';
 import CartRepository from '../repositories/cart.repository';
 import ProductService from './product.service';
+import { OrderEntity } from '../models/order.model';
+import Order from '../models/order.model';
 
 class CartService {
   static async getOrCreateUserCart(userId: string): Promise<CartEntity> {
     // Check if the user already has a cart
+    console.log('CS get or create ' + userId);
     let cart = await CartRepository.getCartByUserId(userId);
 
     // If the user doesn't have a cart, create a new one
@@ -21,34 +25,35 @@ class CartService {
     count: number
   ): Promise<CartEntity | undefined> {
     try {
-      // Retrieve the existing cart object for the given user ID from the repository
+      console.log('CS update cart ' + userId);
       let cart = await CartRepository.getCartByUserId(userId);
 
       if (!cart) {
         return undefined; // Cart not found
       }
 
-      // Find the product with the specified ID from the list of products
       const product = await ProductService.getProductById(productId);
 
       if (!product) {
         throw new Error('Product not found');
       }
 
-      // Find the index of the product in the cart's items array
+      // @ts-ignore
+      const itemToAdd: CartItemEntity = {
+        product: product,
+        count: count,
+      };
+
       const index = cart.items.findIndex(
         (item) => item.product.id === productId
       );
 
       if (index !== -1) {
-        // If the product already exists in the cart, update its count
         cart.items[index].count += count;
       } else {
-        // If the product is not already in the cart, add it to the items array
-        cart.items.push({ product, count });
+        cart.items.push(itemToAdd);
       }
 
-      // Save the updated cart object in the repository
       const updatedCart = await CartRepository.updateCart(cart);
 
       return updatedCart;
@@ -61,6 +66,7 @@ class CartService {
   static async emptyCart(userId: string): Promise<boolean> {
     try {
       // Check if the user has a cart
+      console.log('CS empty cart ' + userId);
       const cart = await CartRepository.getCartByUserId(userId);
 
       if (!cart) {
@@ -83,27 +89,45 @@ class CartService {
   }
 
   static async checkoutCart(userId: string, orderDetails: any): Promise<any> {
-    // You can implement the logic to create an order from the cart here
-    // This could involve creating a new order entity, updating inventory, etc.
-    // For simplicity, let's just return the cart as the order for now
-    const cart = await CartRepository.getCartByUserId(userId);
+    try {
+      // Retrieve the cart associated with the user
+      console.log('CS checkout cart ' + userId);
+      const cart = await CartRepository.getCartByUserId(userId);
 
-    if (!cart || cart.items.length === 0) {
-      throw new Error('Cart is empty');
+      // Check if the cart exists and if it has items
+      if (!cart || cart.items.length === 0) {
+        throw new Error('Cart is empty');
+      }
+
+      // Calculate the total based on the items in the cart
+      const total = cart.items.reduce((acc: number, item: CartItemEntity) => {
+        return acc + item.product.price * item.count;
+      }, 0);
+
+      // Create the order object with necessary details
+      const orderData = {
+        userId: userId,
+        cartId: cart._id, // Assuming _id is the cart identifier
+        items: cart.items,
+        status: 'created',
+        total: total,
+        ...orderDetails,
+      };
+
+      // Create a new Order instance
+      const order = new Order(orderData);
+
+      // Save the order to the database
+      const savedOrder = await order.save();
+
+      // Clear the cart after checkout
+      await CartRepository.deleteCart(userId);
+
+      return savedOrder;
+    } catch (error) {
+      console.error('Error checking out user cart:', error);
+      throw new Error('Failed to checkout cart');
     }
-
-    // Mocking the order creation process
-    const order = {
-      ...cart,
-      status: 'created',
-      total: 0, // Calculate total based on cart items
-      ...orderDetails,
-    };
-
-    // Clear the cart after checkout
-    await CartRepository.deleteCart(userId);
-
-    return order;
   }
 }
 

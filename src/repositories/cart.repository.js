@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -31,45 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const uuid_1 = require("uuid");
-const fs = __importStar(require("fs"));
+const cart_model_1 = __importDefault(require("../models/cart.model"));
 class CartRepository {
-    // Load carts data from database.json file
-    static loadCartsData() {
-        try {
-            const data = fs.readFileSync(this.DB_FILE_PATH, 'utf-8');
-            const jsonData = JSON.parse(data);
-            this.carts = jsonData.carts || [];
-        }
-        catch (error) {
-            console.error('Error loading carts data:', error);
-            throw new Error('Failed to load carts data');
-        }
-    }
-    // Save carts data to database.json file
-    static saveCartsData() {
-        try {
-            const jsonData = Object.assign(Object.assign({}, JSON.parse(fs.readFileSync(this.DB_FILE_PATH, 'utf-8'))), { carts: this.carts });
-            fs.writeFileSync(this.DB_FILE_PATH, JSON.stringify(jsonData, null, 2));
-        }
-        catch (error) {
-            console.error('Error saving carts data:', error);
-            throw new Error('Failed to save carts data');
-        }
+    static initModel() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.cartModel = cart_model_1.default;
+        });
     }
     static getCartByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.loadCartsData();
             try {
-                const cart = this.carts.find((cart) => cart.userId === userId && !cart.isDeleted);
-                if (cart === null || cart === void 0 ? void 0 : cart.isDeleted) {
+                console.log('CR get cart ' + userId);
+                const cart = yield this.cartModel.findOne({
+                    userId: userId,
+                    isDeleted: false,
+                });
+                if (!cart) {
                     return undefined;
                 }
-                if (cart) {
-                    return cart;
-                }
-                return yield this.createCart(userId);
+                return cart;
             }
             catch (error) {
                 console.error('Error fetching cart:', error);
@@ -79,23 +40,14 @@ class CartRepository {
     }
     static createCart(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.loadCartsData();
             try {
-                // Check if the user already has a cart
-                const existingCart = this.carts.find((cart) => cart.userId === userId && !cart.isDeleted);
-                // If a cart already exists, return it
-                if (existingCart) {
-                    return existingCart;
-                }
-                // Create a new cart if one doesn't exist
-                const newCart = {
-                    id: (0, uuid_1.v4)(),
-                    userId,
+                console.log('CR create cart ' + userId);
+                const newCart = new this.cartModel({
+                    userId: userId,
                     isDeleted: false,
                     items: [],
-                };
-                this.carts.push(newCart);
-                this.saveCartsData();
+                });
+                yield newCart.save();
                 return newCart;
             }
             catch (error) {
@@ -106,15 +58,13 @@ class CartRepository {
     }
     static updateCart(updatedCart) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.loadCartsData();
             try {
-                const index = this.carts.findIndex((cart) => cart.id === updatedCart.id);
-                if (index === -1) {
-                    throw new Error('Cart not found');
+                console.log('CC empty cart ' + updatedCart._id);
+                const cart = yield this.cartModel.findByIdAndUpdate(updatedCart._id, updatedCart, { new: true });
+                if (!cart) {
+                    return undefined;
                 }
-                this.carts[index] = updatedCart;
-                this.saveCartsData();
-                return updatedCart;
+                return cart;
             }
             catch (error) {
                 console.error('Error updating cart:', error);
@@ -125,17 +75,11 @@ class CartRepository {
     static deleteCart(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                this.loadCartsData();
-                const index = this.carts.findIndex((cart) => cart.userId === userId && !cart.isDeleted);
-                if (index === -1) {
-                    throw new Error('Cart not found');
-                }
-                // Mark the cart as deleted if it's not already
-                if (!this.carts[index].isDeleted) {
-                    this.carts[index].isDeleted = true;
-                    this.saveCartsData();
-                }
-                return true;
+                const result = yield this.cartModel.deleteOne({
+                    userId: userId,
+                    isDeleted: false,
+                });
+                return result.deletedCount === 1;
             }
             catch (error) {
                 console.error('Error deleting cart:', error);
@@ -144,6 +88,4 @@ class CartRepository {
         });
     }
 }
-CartRepository.DB_FILE_PATH = './src/repositories/database.json';
-CartRepository.carts = [];
 exports.default = CartRepository;

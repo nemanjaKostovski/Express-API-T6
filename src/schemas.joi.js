@@ -6,6 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateCartSchema = void 0;
 const joi_1 = __importDefault(require("joi"));
 exports.updateCartSchema = joi_1.default.object({
-    productId: joi_1.default.string().uuid().required(),
+    productId: joi_1.default.string().required(),
     count: joi_1.default.number().integer().min(1).required(),
 });

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserEntity } from '../types';
+import { UserEntity } from '../models/user.model';
 import UserService from '../services/user.service';
 
 declare global {
@@ -17,6 +17,8 @@ export async function authMiddleware(
   next: NextFunction
 ) {
   const userId = req.header('x-user-id');
+
+  console.log('auth middleware ' + userId);
 
   if (!userId) {
     return res
