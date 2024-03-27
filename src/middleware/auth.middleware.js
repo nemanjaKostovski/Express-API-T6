@@ -17,6 +17,7 @@ const user_service_1 = __importDefault(require("../services/user.service"));
 function authMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         const userId = req.header('x-user-id');
+        console.log('auth middleware ' + userId);
         if (!userId) {
             return res
                 .status(401)

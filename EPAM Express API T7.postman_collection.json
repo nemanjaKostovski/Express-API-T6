@@ -1,0 +1,106 @@
+{
+	"info": {
+		"_postman_id": "40f01656-5d59-4a12-a7b0-da825dcd0539",
+		"name": "EPAM Express API T7",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "9637654"
+	},
+	"item": [
+		{
+			"name": "GET ALL PRODUCTS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8000/api/products"
+			},
+			"response": []
+		},
+		{
+			"name": "GET PRODUCT ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8000/api/products/66002402ade422a41dd14a0f"
+			},
+			"response": []
+		},
+		{
+			"name": "GET user cart",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "6600268401328c9f48d14a10",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8000/api/profile/cart"
+			},
+			"response": []
+		},
+		{
+			"name": "PUT user cart",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "6600268401328c9f48d14a10",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"productId\": \"66002402ade422a41dd14a0e\",\r\n    \"count\": 5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/api/profile/cart"
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE user cart",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "6600268401328c9f48d14a11",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/api/profile/cart"
+			},
+			"response": []
+		},
+		{
+			"name": "POST cart checkout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "6600268401328c9f48d14a10",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8000/api/profile/cart/checkout"
+			},
+			"response": []
+		}
+	]
+}

@@ -19,7 +19,8 @@ class CartController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+                console.log('CC get or create ' + userId);
                 const cart = yield cart_service_1.default.getOrCreateUserCart(userId);
                 return res.status(200).json({ data: cart, error: null });
             }
@@ -35,7 +36,8 @@ class CartController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+                console.log('CC update cart ' + userId);
                 const { productId, count } = req.body;
                 yield schemas_joi_1.updateCartSchema.validateAsync(req.body);
                 const updatedCart = yield cart_service_1.default.updateCart(userId, productId, count);
@@ -53,7 +55,8 @@ class CartController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+                console.log('CC empty cart ' + userId);
                 const success = yield cart_service_1.default.emptyCart(userId);
                 return res.status(200).json({ data: { success }, error: null });
             }
@@ -69,14 +72,15 @@ class CartController {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+                console.log('CC checkout cart ' + userId);
                 const order = yield cart_service_1.default.checkoutCart(userId, req.body);
                 const total = order.items.reduce((acc, item) => {
                     return acc + item.product.price * item.count;
                 }, 0);
                 // Modify the structure of the returned order object to match the expected format
                 const modifiedOrder = {
-                    id: order.id,
+                    _id: order.id,
                     userId: order.userId,
                     cartId: order.cartId,
                     items: order.items.map((item) => ({

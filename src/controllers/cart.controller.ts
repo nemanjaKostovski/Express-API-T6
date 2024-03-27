@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import CartService from '../services/cart.service';
 import { updateCartSchema } from '../schemas.joi';
-import { CartItemEntity } from '../types';
+import { CartItemEntity } from '../models/cartItem.model';
 
 class CartController {
   static async getOrCreateUserCart(req: Request, res: Response) {
     try {
-      const userId = req.user?.id!;
+      const userId = req.user?._id!;
+      console.log('CC get or create ' + userId);
       const cart = await CartService.getOrCreateUserCart(userId);
       return res.status(200).json({ data: cart, error: null });
     } catch (error) {
@@ -19,7 +20,8 @@ class CartController {
 
   static async updateCart(req: Request, res: Response) {
     try {
-      const userId = req.user?.id!;
+      const userId = req.user?._id!;
+      console.log('CC update cart ' + userId);
       const { productId, count } = req.body;
       await updateCartSchema.validateAsync(req.body);
       const updatedCart = await CartService.updateCart(
@@ -38,7 +40,8 @@ class CartController {
 
   static async emptyCart(req: Request, res: Response) {
     try {
-      const userId = req.user?.id!;
+      const userId = req.user?._id!;
+      console.log('CC empty cart ' + userId);
       const success = await CartService.emptyCart(userId);
       return res.status(200).json({ data: { success }, error: null });
     } catch (error) {
@@ -51,7 +54,8 @@ class CartController {
 
   static async checkoutCart(req: Request, res: Response) {
     try {
-      const userId = req.user?.id!;
+      const userId = req.user?._id!;
+      console.log('CC checkout cart ' + userId);
       const order = await CartService.checkoutCart(userId, req.body);
       const total = order.items.reduce((acc: number, item: CartItemEntity) => {
         return acc + item.product.price * item.count;
@@ -59,7 +63,7 @@ class CartController {
 
       // Modify the structure of the returned order object to match the expected format
       const modifiedOrder = {
-        id: order.id,
+        _id: order.id,
         userId: order.userId,
         cartId: order.cartId,
         items: order.items.map((item: CartItemEntity) => ({

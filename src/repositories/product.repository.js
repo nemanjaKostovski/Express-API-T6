@@ -1,29 +1,4 @@
 "use strict";
-// This file will handle the interaction with the data storage for products. It will contain functions to perform database operations like querying for products, inserting new products, updating existing products, and deleting products. In this case, since we're using a file-based data storage, it might involve reading from and writing to JSON files.
-// product.repository.ts
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -33,20 +8,40 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const database = __importStar(require("./database.json")); // Import database.json
+const product_model_1 = __importDefault(require("../models/product.model"));
 class ProductRepository {
+    static initModel() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.productModel = product_model_1.default;
+        });
+    }
     static getAllProducts() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.products;
+            try {
+                const products = yield this.productModel.find();
+                return products;
+            }
+            catch (error) {
+                console.error('Error fetching all products:', error);
+                throw error;
+            }
         });
     }
     static getProductById(productId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const product = this.products.find((p) => p.id === productId);
-            return product || null;
+            try {
+                const product = yield this.productModel.findById(productId);
+                return product;
+            }
+            catch (error) {
+                console.error(`Error fetching product by ID ${productId}:`, error);
+                throw error;
+            }
         });
     }
 }
-ProductRepository.products = database.products;
 exports.default = ProductRepository;

@@ -1,56 +1,27 @@
-import { CartEntity } from '../types';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
+import { Model } from 'mongoose';
+import { CartEntity } from '../models/cart.model';
+import Cart from '../models/cart.model';
 
 class CartRepository {
-  private static readonly DB_FILE_PATH = './src/repositories/database.json';
+  private static cartModel: Model<CartEntity>;
 
-  private static carts: CartEntity[] = [];
-
-  // Load carts data from database.json file
-  private static loadCartsData(): void {
-    try {
-      const data = fs.readFileSync(this.DB_FILE_PATH, 'utf-8');
-      const jsonData = JSON.parse(data);
-      this.carts = jsonData.carts || [];
-    } catch (error) {
-      console.error('Error loading carts data:', error);
-      throw new Error('Failed to load carts data');
-    }
-  }
-
-  // Save carts data to database.json file
-  private static saveCartsData(): void {
-    try {
-      const jsonData = {
-        ...JSON.parse(fs.readFileSync(this.DB_FILE_PATH, 'utf-8')),
-        carts: this.carts,
-      };
-      fs.writeFileSync(this.DB_FILE_PATH, JSON.stringify(jsonData, null, 2));
-    } catch (error) {
-      console.error('Error saving carts data:', error);
-      throw new Error('Failed to save carts data');
-    }
+  static async initModel(): Promise<void> {
+    this.cartModel = Cart;
   }
 
   static async getCartByUserId(
     userId: string
   ): Promise<CartEntity | undefined> {
-    this.loadCartsData();
     try {
-      const cart = this.carts.find(
-        (cart) => cart.userId === userId && !cart.isDeleted
-      );
-
-      if (cart?.isDeleted) {
+      console.log('CR get cart ' + userId);
+      const cart = await this.cartModel.findOne({
+        userId: userId,
+        isDeleted: false,
+      });
+      if (!cart) {
         return undefined;
       }
-
-      if (cart) {
-        return cart;
-      }
-
-      return await this.createCart(userId);
+      return cart;
     } catch (error) {
       console.error('Error fetching cart:', error);
       throw new Error('Failed to fetch cart');
@@ -58,27 +29,14 @@ class CartRepository {
   }
 
   static async createCart(userId: string): Promise<CartEntity> {
-    this.loadCartsData();
     try {
-      // Check if the user already has a cart
-      const existingCart = this.carts.find(
-        (cart) => cart.userId === userId && !cart.isDeleted
-      );
-
-      // If a cart already exists, return it
-      if (existingCart) {
-        return existingCart;
-      }
-
-      // Create a new cart if one doesn't exist
-      const newCart: CartEntity = {
-        id: uuidv4(),
-        userId,
+      console.log('CR create cart ' + userId);
+      const newCart = new this.cartModel({
+        userId: userId,
         isDeleted: false,
         items: [],
-      };
-      this.carts.push(newCart);
-      this.saveCartsData();
+      });
+      await newCart.save();
       return newCart;
     } catch (error) {
       console.error('Error creating cart:', error);
@@ -89,15 +47,19 @@ class CartRepository {
   static async updateCart(
     updatedCart: CartEntity
   ): Promise<CartEntity | undefined> {
-    this.loadCartsData();
     try {
-      const index = this.carts.findIndex((cart) => cart.id === updatedCart.id);
-      if (index === -1) {
-        throw new Error('Cart not found');
+      console.log('CC empty cart ' + updatedCart._id);
+      const cart = await this.cartModel.findByIdAndUpdate(
+        updatedCart._id,
+        updatedCart,
+        { new: true }
+      );
+
+      if (!cart) {
+        return undefined;
       }
-      this.carts[index] = updatedCart;
-      this.saveCartsData();
-      return updatedCart;
+
+      return cart;
     } catch (error) {
       console.error('Error updating cart:', error);
       throw new Error('Failed to update cart');
@@ -106,22 +68,11 @@ class CartRepository {
 
   static async deleteCart(userId: string): Promise<boolean> {
     try {
-      this.loadCartsData();
-      const index = this.carts.findIndex(
-        (cart) => cart.userId === userId && !cart.isDeleted
-      );
-
-      if (index === -1) {
-        throw new Error('Cart not found');
-      }
-
-      // Mark the cart as deleted if it's not already
-      if (!this.carts[index].isDeleted) {
-        this.carts[index].isDeleted = true;
-        this.saveCartsData();
-      }
-
-      return true;
+      const result = await this.cartModel.deleteOne({
+        userId: userId,
+        isDeleted: false,
+      });
+      return result.deletedCount === 1;
     } catch (error) {
       console.error('Error deleting cart:', error);
       throw new Error('Failed to delete cart');

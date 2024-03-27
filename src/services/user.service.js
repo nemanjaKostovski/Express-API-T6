@@ -19,6 +19,7 @@ class UserService {
             try {
                 // Call the ProductRepository to fetch product by ID
                 const user = yield user_repository_1.default.getUserById(userId);
+                console.log(user);
                 return user || null;
             }
             catch (error) {
